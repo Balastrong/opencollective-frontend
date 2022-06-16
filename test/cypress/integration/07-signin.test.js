@@ -117,6 +117,44 @@ describe('signin', () => {
     cy.contains(`We've sent it to ${email}`);
   });
 
+  it('after signup shows the /welcome page if there is no redirect', () => {
+    cy.visit('/signin');
+
+    // Go to CreateProfile
+    cy.contains('a', 'Sign Up').click();
+
+    // Test frontend validations
+    cy.get('input[name=name]').type('John');
+
+    // Submit the form with correct values
+    const email = randomEmail();
+    cy.get('input[name=email]').type(email);
+    cy.get('[data-cy=checkbox-tosOptIn]').click();
+    cy.get('button[type=submit]').click();
+    cy.visit(`/signin/${generateToken({ email })}`);
+    cy.assertLoggedIn();
+    cy.contains('Welcome to Open Collective!');
+  });
+
+  it('after signup do not show the welcome page if there is a redirect', () => {
+    cy.visit('/signin?next=%2Fhow-it-works');
+
+    // Go to CreateProfile
+    cy.contains('a', 'Sign Up').click();
+
+    // Test frontend validations
+    cy.get('input[name=name]').type('Esther');
+
+    // Submit the form with correct values
+    const email = randomEmail();
+    cy.get('input[name=email]').type(email);
+    cy.get('[data-cy=checkbox-tosOptIn]').click();
+    cy.get('button[type=submit]').click();
+    cy.visit(`/signin/${generateToken({ email })}?next=%how-it-works`);
+    cy.assertLoggedIn();
+    cy.contains('How Open Collective works');
+  });
+
   it('can signup a user with gmail and show Open Gmail button ', () => {
     // Submit the form using the email providers--gmail)
     const gmailEmail = randomGmailEmail(false);
